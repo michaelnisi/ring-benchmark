@@ -1,6 +1,3 @@
-
-// ring-benchmark
-
 var cluster = require('cluster')
   , http = require('http')
 
