@@ -1,34 +1,28 @@
+
+%% ring - send M messages through a ring of N processes
+
 -module(ring).
 -export([start/2]).
 
-start(N, M) ->
+start(M, N) ->
   statistics(runtime),
-  start(N, M, N, spawn_link(fun() -> loop(N, M, []) end)).
+  H = lists:foldl(
+    fun(Id, Pid) -> spawn_link(fun() -> loop(Id, Pid, M) end) end,
+    self(),
+    lists:seq(N, 2, -1)),
+  {_, Time} = statistics(runtime),
+  io:format("~p processes spawned in ~p ms~n", [N, Time]),
+  statistics(runtime),
+  H ! M,
+  loop(1, H, M).
 
-start(_, M, 0, Next) ->
-  send(Next, hey, M);
-start(N, M, NC, Next) ->
-  start(N, M, NC-1, spawn_link(fun() -> loop(N, M, Next) end)).
-
-send(Pid, _, 0) ->
-  Pid ! done,
-  Pid;
-send(Pid, Message, M) ->
-  Pid ! Message,
-  send(Pid, Message, M-1).
-
-loop(N, M, Next) ->
+loop(Id, Pid, M) ->
   receive
-    done when is_pid(Next) ->
-      Next ! done;
-    done ->
-      Z = N * M,
+    1 ->
       {_, Time} = statistics(runtime),
-      io:format("~p messages sent in ~p ms~n", [Z, Time]),
+      io:format("~p messages sent in ~p ms~n", [M, Time]),
       exit(self(), ok);
-    hey when is_pid(Next) ->
-      Next ! hey,
-      loop(N, M, Next);
-    _ ->
-      loop(N, M, Next)
+    Index ->
+      Pid ! Index - 1,
+      loop(Id, Pid, M)
   end.
