@@ -1,17 +1,16 @@
 # ring-benchmark
 
-In his book *Programming Erlang*, Joe Armstrong writes:
+In his book *Programming Erlang*, Joe Armstrong demands:
 
 > Write a ring benchmark. Create N processes in a ring. Send a message round the ring M times so that a total of N * M messages get sent. Time how long this takes for different values of N and M.
 
-So, here is mine:
-
+So, here goes:
 ```Erlang
 -module(ring).
--export([send/2]).
+-export([start/2]).
 
-%% send M messages through a ring of N processes
-send(M, N) ->
+%% @doc Send M messages through a ring of N processes.
+start(M, N) ->
   statistics(runtime),
   H = lists:foldl(
     fun(Id, Pid) -> spawn_link(fun() -> loop(Id, Pid, M) end) end,
@@ -35,8 +34,7 @@ loop(Id, Pid, M) ->
   end.
 ```
 
-## Try it
-
+To try this in shell:
 ```
 $ erl
 > c(ring).

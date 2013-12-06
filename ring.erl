@@ -1,8 +1,8 @@
 -module(ring).
--export([send/2]).
+-export([start/2]).
 
-%% ring - send M messages through a ring of N processes
-send(M, N) ->
+%% @doc Send M messages through a ring of N processes.
+start(M, N) ->
   statistics(runtime),
   H = lists:foldl(
     fun(Id, Pid) -> spawn_link(fun() -> loop(Id, Pid, M) end) end,
